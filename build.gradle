@@ -1,0 +1,150 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
+        maven {
+            name = "sonatype"
+            url = "https://oss.sonatype.org/content/repositories/snapshots/"
+        }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
+    }
+}
+
+apply plugin: "curseforge"
+apply plugin: 'forge'
+apply plugin: 'maven-publish'
+
+task makePretty(type: Delete) {
+  delete 'output'
+}
+
+clean{
+   dependsOn makePretty
+}
+
+
+ext.buildProps = file "build.properties"
+
+//if (${System.getenv()bamboo.buildNumber}) != null) {
+//   version = "${System.getenv()bamboo.buildNumber}}"
+//} else {
+//    version = "NIGHTLY"
+//}
+
+buildProps.withReader {
+    def prop = new Properties()
+    prop.load(it)
+    ext.config = new ConfigSlurper().parse prop
+}
+
+version = "${config.version.minecraft}-${config.version.mod.major}.${config.version.mod.minor}.${config.version.mod.revis}b"
+group = "Twitch-irc"
+archivesBaseName = "Twitch-irc"
+
+if (project.hasProperty("bambooBuildNumber"))
+    version += project.bambooBuildNumber
+else
+    version += "NIGHTLY"
+    
+if (project.getProperty("bambooshortPlanName") == "NEK-Dev")
+    version += "dev"
+
+println "version = "+ version
+
+minecraft {
+    version = "${config.version.minecraft}-${config.version.forge}"
+    runDir = "run"
+    mappings = config.version.mappings
+
+curse {
+    apiKey = project.dmodcurse
+    projectId = "224614"
+    // my project url is http://minecraft.curseforge.com/mc-mods/59652-seretroomsmod/
+    changelog = "check out https://github.com/mod-warriors/NotEnoughKeys/commits/master"
+    releaseType = "beta"
+
+    // the default obfuscated jar is uploaded by default
+    // artifact = project.file("some/jar/to/upload.jar")
+
+    // allows you to add extra compatible MC versions. The one specified in the minecraft{} block is used by default.
+    addGameVersion "1.7.10"
+    // addGameversion "1.7.0", "1.7.4"
+}
+
+task copyBuildXml(type: Copy) {
+    from 'build.properties'
+    into 'build/libs'
+}
+
+processResources {
+	from(sourceSets.main.resources.srcDirs) {
+		include '**/*.lang'
+		include '**/*.info'
+		include '**/*.properties'
+
+		expand 'version': project.version, 'mcversion': config.version.minecraft
+		// replace version and MCVersion
+	}
+
+	// copy everything else, thats not text
+	from(sourceSets.main.resources.srcDirs) {
+		exclude '**/*.lang'
+		exclude '**/*.info'
+		exclude '**/*.properties'
+	}
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication)
+        {
+            artifact jar
+            artifact deobfJar
+            artifact javadocJar
+            artifactId 'Twitch'
+
+            artifact("build/libs/build.properties") {
+                classifier "build"
+                extension "properties"
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            url "file:///var/www/html/maven"
+        }
+    }
+}
+
+task javadocJar(type: Jar, dependsOn: 'javadoc') {
+   
+    from javadoc.destinationDir
+    if (project.getProperty("bambooshortPlanName") == "Twitch-Dev") classifier = "javadoc-dev" 
+    else classifier = "javadoc" 
+    destinationDir = file 'output'
+}
+
+jar { 
+    if (project.getProperty("bambooshortPlanName") == "Twitch-Dev") classifier = "dev"
+    
+    dependsOn copyBuildXml
+    destinationDir = file 'output'
+    }
+
+task deobfJar(type: Jar) {
+    from sourceSets.main.output
+    if (project.getProperty("bambooshortPlanName") == "Twitch-Dev") classifier = "deobf-dev" 
+    else classifier = "deobf" 
+    destinationDir = file 'output'
+}
+
+artifacts {
+    archives deobfJar
+    archives javadocJar
+}
