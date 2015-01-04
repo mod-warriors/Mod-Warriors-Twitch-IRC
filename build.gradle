@@ -51,7 +51,7 @@ if (project.hasProperty("bambooBuildNumber"))
 else
     version += "NIGHTLY"
     
-if (project.getProperty("bambooshortPlanName") == "NEK-Dev")
+if (project.getProperty("bambooshortPlanName") == "Twitch-Dev")
     version += "dev"
 
 println "version = "+ version
@@ -60,6 +60,7 @@ minecraft {
     version = "${config.version.minecraft}-${config.version.forge}"
     runDir = "run"
     mappings = config.version.mappings
+}
 
 curse {
     apiKey = project.dmodcurse
@@ -123,7 +124,6 @@ publishing {
 }
 
 task javadocJar(type: Jar, dependsOn: 'javadoc') {
-   
     from javadoc.destinationDir
     if (project.getProperty("bambooshortPlanName") == "Twitch-Dev") classifier = "javadoc-dev" 
     else classifier = "javadoc" 
