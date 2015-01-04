@@ -51,8 +51,8 @@ if (project.hasProperty("bambooBuildNumber"))
 else
     version += "NIGHTLY"
     
-if (project.getProperty("bambooshortPlanName") == "Twitch-Dev")
-    version += "dev"
+//if (project.getProperty("bambooshortPlanName") == "Twitch-Dev")
+//    version += "dev"
 
 println "version = "+ version
 
@@ -125,13 +125,13 @@ publishing {
 
 task javadocJar(type: Jar, dependsOn: 'javadoc') {
     from javadoc.destinationDir
-    if (project.getProperty("bambooshortPlanName") == "Twitch-Dev") classifier = "javadoc-dev" 
-    else classifier = "javadoc" 
+    //if (project.getProperty("bambooshortPlanName") == "Twitch-Dev") classifier = "javadoc-dev" 
+    //else classifier = "javadoc" 
     destinationDir = file 'output'
 }
 
 jar { 
-    if (project.getProperty("bambooshortPlanName") == "Twitch-Dev") classifier = "dev"
+    //if (project.getProperty("bambooshortPlanName") == "Twitch-Dev") classifier = "dev"
     
     dependsOn copyBuildXml
     destinationDir = file 'output'
@@ -139,8 +139,8 @@ jar {
 
 task deobfJar(type: Jar) {
     from sourceSets.main.output
-    if (project.getProperty("bambooshortPlanName") == "Twitch-Dev") classifier = "deobf-dev" 
-    else classifier = "deobf" 
+    //if (project.getProperty("bambooshortPlanName") == "Twitch-Dev") classifier = "deobf-dev" 
+    //else classifier = "deobf" 
     destinationDir = file 'output'
 }
 
